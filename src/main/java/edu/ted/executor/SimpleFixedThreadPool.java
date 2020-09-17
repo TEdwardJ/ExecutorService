@@ -96,10 +96,13 @@ public class SimpleFixedThreadPool implements ExecutorService {
     }
 
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+        CountDownLatch timedLatch = new CountDownLatch(tasks.size());
         List<Future<T>> futureList = new ArrayList<>();
         for (Callable<T> task : tasks) {
-            futureList.add(submit(task));
+            CallableTaskWrapper<T> taskWrapper = new CallableTaskWrapper<>(task, timedLatch);
+            futureList.add(submit(taskWrapper));
         }
+        timedLatch.await();
         return futureList;
     }
 

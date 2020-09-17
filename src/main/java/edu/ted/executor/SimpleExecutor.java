@@ -24,7 +24,6 @@ public class SimpleExecutor implements Runnable {
             System.out.println(executorId + ": started");
 
             while (inWork && !Thread.interrupted()) {
-                //Blocking when nothing in queue
                 FutureTask<?> task = getTask();
                 System.out.println(executorId + ": got the task. Execution started");
                 try {
@@ -34,10 +33,8 @@ public class SimpleExecutor implements Runnable {
                     e.printStackTrace();
                 }
             }
-        } catch (InterruptedException e) {
+        } catch (BrokenBarrierException | InterruptedException e) {
             inWork = false;
-        } catch (BrokenBarrierException e) {
-            e.printStackTrace();
         }
         terminationLatch.countDown();
         System.out.println(executorId + ": finished");

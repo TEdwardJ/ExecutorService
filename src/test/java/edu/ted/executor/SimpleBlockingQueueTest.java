@@ -34,15 +34,12 @@ class SimpleBlockingQueueTest {
     void put() throws InterruptedException {
         queue.put("First");
         long startTimePoint = System.currentTimeMillis();
-        Runnable parallelTask = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(500);
-                    System.out.println(queue.take());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        Runnable parallelTask = () -> {
+            try {
+                Thread.sleep(500);
+                System.out.println(queue.take());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         };
         new Thread(parallelTask).start();
@@ -85,15 +82,12 @@ class SimpleBlockingQueueTest {
         assertTrue((System.currentTimeMillis() - startTimePoint) > 500);
         assertNull(element);
         startTimePoint = System.currentTimeMillis();
-        Runnable parallelTask = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(300);
-                    queue.put("Second");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        Runnable parallelTask = () -> {
+            try {
+                Thread.sleep(300);
+                queue.put("Second");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         };
         new Thread(parallelTask).start();
@@ -141,7 +135,6 @@ class SimpleBlockingQueueTest {
         List<String> drainingList = new ArrayList<>();
         assertEquals(0, queue.drainTo(drainingList));
         assertTrue(drainingList.isEmpty());
-        assertEquals(0, drainingList.size());
         assertNull(queue.poll(0, TimeUnit.MILLISECONDS));
     }
 }
