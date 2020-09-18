@@ -126,7 +126,7 @@ public class SimpleFixedThreadPool implements ExecutorService {
                 return result.get();
             }
         }
-        return null;
+        throw new ExecutionException("No task successfully completes", null);
     }
 
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
@@ -136,7 +136,7 @@ public class SimpleFixedThreadPool implements ExecutorService {
                 return result.get();
             }
         }
-        return null;
+        throw new ExecutionException("No task successfully completes", null);
     }
 
     public void execute(Runnable command) {
