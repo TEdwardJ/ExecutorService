@@ -8,9 +8,9 @@ public class SimpleExecutor implements Runnable {
     private final String executorId;
     private volatile boolean inWork = true;
 
-    private final BlockingQueue<FutureTask<?>> queue;
+    private final SimpleBlockingQueue<FutureTask<?>> queue;
 
-    public SimpleExecutor(BlockingQueue<FutureTask<?>> queue, String executorId, CyclicBarrier poolBarrier, CountDownLatch terminationLatch) {
+    public SimpleExecutor(SimpleBlockingQueue<FutureTask<?>> queue, String executorId, CyclicBarrier poolBarrier, CountDownLatch terminationLatch) {
         this.queue = queue;
         this.executorId = executorId;
         this.poolBarrier = poolBarrier;

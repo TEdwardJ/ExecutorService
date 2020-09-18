@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class SimpleBlockingQueue<T> {
-    private final T[] elementArray;
+    private T[] elementArray;
     private int head;
     private int tail;
     private int size;
@@ -23,12 +23,13 @@ public class SimpleBlockingQueue<T> {
     public boolean add(T t) {
         boolean result = offer(t);
         if (!result) {
-            throw new IllegalStateException("Nno space is currently available");
+            throw new IllegalStateException("No space is currently available");
         }
         return result;
     }
 
     public boolean offer(T t) {
+        checkIfNull(t);
         lock.lock();
         try {
             if (size == elementArray.length) {
@@ -64,6 +65,7 @@ public class SimpleBlockingQueue<T> {
     }
 
     public void put(T t) throws InterruptedException {
+        checkIfNull(t);
         lock.lock();
         try {
             while (size == elementArray.length) {
@@ -140,6 +142,7 @@ public class SimpleBlockingQueue<T> {
     }
 
     public boolean remove(Object o) {
+        checkIfNull(o);
         lock.lock();
         int removedIndex;
         try {
@@ -159,6 +162,12 @@ public class SimpleBlockingQueue<T> {
             return false;
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void checkIfNull(Object o) {
+        if (Objects.isNull(o)) {
+            throw new NullPointerException();
         }
     }
 
@@ -185,6 +194,7 @@ public class SimpleBlockingQueue<T> {
     }
 
     public boolean contains(Object o) {
+        checkIfNull(o);
         lock.lock();
         try {
             if (size > 0) {

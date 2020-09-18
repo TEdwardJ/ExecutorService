@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class SimpleFixedThreadPool implements ExecutorService {
     private final ReentrantLock shutdownLock = new ReentrantLock();
     private final CountDownLatch terminationLatch;
-    private final BlockingQueue<FutureTask<?>> queue = new ArrayBlockingQueue<>(100, true);
+    private final SimpleBlockingQueue<FutureTask<?>> queue = new SimpleBlockingQueue<FutureTask<?>>(100);
     private final List<Thread> executorsThreadPool;
     private final List<SimpleExecutor> executorList;
     private volatile boolean isInWork;

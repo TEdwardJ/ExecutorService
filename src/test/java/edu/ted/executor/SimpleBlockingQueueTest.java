@@ -25,11 +25,20 @@ class SimpleBlockingQueueTest {
     }
 
     @Test
+    void addNullElement() {
+        assertThrows(NullPointerException.class, ()->queue.add(null));
+    }
+
+    @Test
     void offer() {
         assertTrue(queue.offer("First"));
         assertFalse(queue.offer("Second"));
     }
 
+    @Test
+    void offerNullElement() {
+        assertThrows(NullPointerException.class, ()->queue.offer(null));
+    }
     @Test
     void put() throws InterruptedException {
         queue.put("First");
@@ -113,11 +122,24 @@ class SimpleBlockingQueueTest {
     }
 
     @Test
+    void removeNullElement() throws InterruptedException {
+        queue.put("First");
+        assertThrows(NullPointerException.class, ()->queue.remove(null));
+    }
+
+    @Test
     void contains() throws InterruptedException {
         String firstElement = "First";
         queue.put(firstElement);
         assertTrue(queue.contains(firstElement));
         assertFalse(queue.contains("Second"));
+    }
+
+    @Test
+    void containsNullElement() throws InterruptedException {
+        String firstElement = "First";
+        queue.put(firstElement);
+        assertThrows(NullPointerException.class, ()->queue.contains(null));
     }
 
     @Test
