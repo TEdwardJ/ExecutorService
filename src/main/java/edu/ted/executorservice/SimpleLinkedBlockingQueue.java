@@ -12,8 +12,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class SimpleLinkedBlockingQueue<T> {
 
-    //private final Logger log = LoggerFactory.getLogger(getClass());
-
     private final int capacity;
     private Node<T> tail;
     private Node<T> head;
