@@ -1,7 +1,8 @@
-package edu.ted.executor;
+package edu.ted.executorservice;
 
-import edu.ted.executor.SimpleFixedThreadPool;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SimpleFixedThreadPoolTest {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    
     @Test
     public void testRunnableInBulk() throws InterruptedException {
         int taskNumber = 11;
@@ -21,14 +24,14 @@ public class SimpleFixedThreadPoolTest {
         List<Future<?>> futureList = new ArrayList<>();
         for (int i = 0; i < taskNumber; i++) {
             final int num = i;
-            System.out.println("giving tasks");
+            logger.debug("giving tasks");
             Runnable runnable = () -> {
-                System.out.println("Task number " + num + " is executing");
+                logger.debug("Task number {} is executing", num);
                 try {
                     Thread.sleep(500);
                     resultMap.put(num, true);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.debug("Interrupted: ", e);
                 } finally {
                     finishLatch.countDown();
                 }
@@ -40,7 +43,7 @@ public class SimpleFixedThreadPoolTest {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.debug("Interrupted: ", e);
         }
         for (Future<?> future : futureList) {
             try {
@@ -48,7 +51,7 @@ public class SimpleFixedThreadPoolTest {
                 assertFalse(future.isCancelled());
                 assertTrue((Boolean) future.get());
             } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
+                logger.debug("Exception: ", e);
             }
         }
         for (int i = 0; i < taskNumber; i++) {
@@ -66,9 +69,9 @@ public class SimpleFixedThreadPoolTest {
         for (int i = 0; i < taskCount; i++) {
 
             final int num = i;
-            System.out.println("giving tasks");
+            logger.debug("giving tasks");
             Callable<Integer> callable = () -> {
-                System.out.println("Task number " + num + " is executing");
+                logger.debug("Task number {} is executing", num);
                 try {
                     Thread.sleep(500);
                     return num;
@@ -85,7 +88,7 @@ public class SimpleFixedThreadPoolTest {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.debug("Interrupted: ", e);
         }
         for (Future<?> future : futureList) {
             try {
@@ -95,7 +98,7 @@ public class SimpleFixedThreadPoolTest {
                 resultMap.put(intResult, true);
                 assertTrue(intResult >= 0);
             } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
+                logger.debug("Exception: ", e);
             }
         }
         assertEquals(taskCount, resultMap.size());

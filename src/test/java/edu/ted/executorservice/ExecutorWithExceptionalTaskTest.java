@@ -1,6 +1,8 @@
-package edu.ted.executor;
+package edu.ted.executorservice;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ExecutorWithExceptionalTaskTest {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     @Test
     public void givenTasksThrowingExceptions_whenGetExceptionFromTheFuture_thenCorrect() throws InterruptedException {
 
@@ -22,14 +26,14 @@ public class ExecutorWithExceptionalTaskTest {
         final CountDownLatch finishLatch = new CountDownLatch(taskNumber);
         for (int i = 0; i < taskNumber; i++) {
             final int num = i;
-            System.out.println("giving tasks");
+            logger.debug("giving tasks");
             Runnable runnable = () -> {
-                System.out.println("Task number " + num + " is executing");
+                logger.debug("Task number {} is executing", num);
                 try {
                     Thread.sleep(300);
                     throw new RuntimeException("TestException. Something went wrong");
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.debug("Interrupted: ", e);
                 } finally {
                     finishLatch.countDown();
                 }
@@ -38,7 +42,7 @@ public class ExecutorWithExceptionalTaskTest {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.debug("Interrupted: ", e);
             }
         }
         finishLatch.await();

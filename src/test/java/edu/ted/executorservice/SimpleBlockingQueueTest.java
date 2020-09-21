@@ -1,7 +1,9 @@
-package edu.ted.executor;
+package edu.ted.executorservice;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,23 +12,24 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SimpleBlockingQueueTest {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    SimpleBlockingQueue<String> queue;
+    private SimpleLinkedBlockingQueue<String> queue;
 
     @BeforeEach
-    public void queueInit(){
-        queue = new SimpleBlockingQueue<>(1);
+    public void queueInit() {
+        queue = new SimpleLinkedBlockingQueue<>(1);
     }
 
     @Test
     void add() {
         assertTrue(queue.add("First"));
-        assertThrows(IllegalStateException.class, ()->queue.add("Second"));
+        assertThrows(IllegalStateException.class, () -> queue.add("Second"));
     }
 
     @Test
     void addNullElement() {
-        assertThrows(NullPointerException.class, ()->queue.add(null));
+        assertThrows(NullPointerException.class, () -> queue.add(null));
     }
 
     @Test
@@ -37,8 +40,9 @@ class SimpleBlockingQueueTest {
 
     @Test
     void offerNullElement() {
-        assertThrows(NullPointerException.class, ()->queue.offer(null));
+        assertThrows(NullPointerException.class, () -> queue.offer(null));
     }
+
     @Test
     void put() throws InterruptedException {
         queue.put("First");
@@ -46,9 +50,9 @@ class SimpleBlockingQueueTest {
         Runnable parallelTask = () -> {
             try {
                 Thread.sleep(500);
-                System.out.println(queue.take());
+                logger.debug("take returns {}", queue.take());
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.debug("Interrupted: ", e);
             }
         };
         new Thread(parallelTask).start();
@@ -76,7 +80,8 @@ class SimpleBlockingQueueTest {
                 Thread.sleep(500);
                 queue.put("Second");
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.debug("Interrupted: ", e);
+                ;
             }
         };
         new Thread(parallelTask).start();
@@ -96,50 +101,22 @@ class SimpleBlockingQueueTest {
                 Thread.sleep(300);
                 queue.put("Second");
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.debug("Interrupted: ", e);
+                ;
             }
         };
         new Thread(parallelTask).start();
         element = queue.poll(500, TimeUnit.MILLISECONDS);
         assertEquals("Second", element);
-        System.out.println(System.currentTimeMillis() - startTimePoint);
+        logger.debug("Time passed: {}", (System.currentTimeMillis() - startTimePoint));
         assertTrue((System.currentTimeMillis() - startTimePoint) >= 300);
     }
 
     @Test
-    void remainingCapacity() throws InterruptedException {
+    void remainingCapacity() {
         assertEquals(1, queue.remainingCapacity());
         queue.put("First");
         assertEquals(0, queue.remainingCapacity());
-    }
-
-    @Test
-    void remove() throws InterruptedException {
-        queue.put("First");
-        queue.remove("First");
-        queue.put("Second");
-        assertEquals("Second", queue.take());
-    }
-
-    @Test
-    void removeNullElement() throws InterruptedException {
-        queue.put("First");
-        assertThrows(NullPointerException.class, ()->queue.remove(null));
-    }
-
-    @Test
-    void contains() throws InterruptedException {
-        String firstElement = "First";
-        queue.put(firstElement);
-        assertTrue(queue.contains(firstElement));
-        assertFalse(queue.contains("Second"));
-    }
-
-    @Test
-    void containsNullElement() throws InterruptedException {
-        String firstElement = "First";
-        queue.put(firstElement);
-        assertThrows(NullPointerException.class, ()->queue.contains(null));
     }
 
     @Test
@@ -147,7 +124,7 @@ class SimpleBlockingQueueTest {
         String firstElement = "First";
         queue.put(firstElement);
         List<String> drainingList = new ArrayList<>();
-        assertEquals(1,queue.drainTo(drainingList));
+        assertEquals(1, queue.drainTo(drainingList));
         assertEquals(1, drainingList.size());
         assertNull(queue.poll(0, TimeUnit.MILLISECONDS));
     }
