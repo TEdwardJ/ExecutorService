@@ -1,8 +1,6 @@
 package edu.ted.executorservice;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,9 +9,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
+@Slf4j
 public class SimpleFixedThreadPool implements ExecutorService {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final int poolSize;
     private final AtomicInteger workersCount = new AtomicInteger(0);
@@ -131,7 +128,7 @@ public class SimpleFixedThreadPool implements ExecutorService {
                 Thread workerThread = new Thread(worker);
                 workerThread.setName("Worker " + currentIndex + " thread");
                 workerThread.start();
-                logger.debug("New Worker {} added", currentIndex);
+                log.debug("New Worker {} added", currentIndex);
             }
         }
     }

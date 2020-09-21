@@ -1,13 +1,10 @@
 package edu.ted.executorservice;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.*;
 
+@Slf4j
 public class SimpleWorker implements Runnable {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private Thread myThread;
     private final Semaphore isRunningSemaphore = new Semaphore(1, false);
@@ -26,26 +23,26 @@ public class SimpleWorker implements Runnable {
     public void run() {
         try {
             myThread = Thread.currentThread();
-            logger.debug("{}: started in {}", workerId, myThread.getName());
+            log.debug("{}: started in {}", workerId, myThread.getName());
 
             while (isRunning && !Thread.interrupted()) {
                 FutureTask<?> task = getTask();
                 isRunningSemaphore.acquire();
                 try {
-                    logger.debug("{}: got the task. Execution started", workerId);
+                    log.debug("{}: got the task. Execution started", workerId);
                     task.run();
                 } catch (Exception e) {
-                    logger.debug("{}: finished current task abnormally", workerId, e);
+                    log.debug("{}: finished current task abnormally", workerId, e);
                 } finally {
                     isRunningSemaphore.release();
                 }
             }
         } catch (InterruptedException e) {
-            logger.debug("{}: worker was interrupted", workerId, e);
+            log.debug("{}: worker was interrupted", workerId, e);
             shutdown();
         } finally {
             terminationLatch.countDown();
-            logger.debug("{}: finished", workerId);
+            log.debug("{}: finished", workerId);
         }
     }
 

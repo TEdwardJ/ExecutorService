@@ -1,9 +1,7 @@
 package edu.ted.executorservice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +9,9 @@ import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 public class SimpleFixedThreadPoolTest {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    
     @Test
     public void testRunnableInBulk() throws InterruptedException {
         int taskNumber = 11;
@@ -24,14 +21,14 @@ public class SimpleFixedThreadPoolTest {
         List<Future<?>> futureList = new ArrayList<>();
         for (int i = 0; i < taskNumber; i++) {
             final int num = i;
-            logger.debug("giving tasks");
+            log.debug("giving tasks");
             Runnable runnable = () -> {
-                logger.debug("Task number {} is executing", num);
+                log.debug("Task number {} is executing", num);
                 try {
                     Thread.sleep(500);
                     resultMap.put(num, true);
                 } catch (InterruptedException e) {
-                    logger.debug("Interrupted: ", e);
+                    log.debug("Interrupted: ", e);
                 } finally {
                     finishLatch.countDown();
                 }
@@ -43,7 +40,7 @@ public class SimpleFixedThreadPoolTest {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
-            logger.debug("Interrupted: ", e);
+            log.debug("Interrupted: ", e);
         }
         for (Future<?> future : futureList) {
             try {
@@ -51,7 +48,7 @@ public class SimpleFixedThreadPoolTest {
                 assertFalse(future.isCancelled());
                 assertTrue((Boolean) future.get());
             } catch (ExecutionException | InterruptedException e) {
-                logger.debug("Exception: ", e);
+                log.debug("Exception: ", e);
             }
         }
         for (int i = 0; i < taskNumber; i++) {
@@ -69,9 +66,9 @@ public class SimpleFixedThreadPoolTest {
         for (int i = 0; i < taskCount; i++) {
 
             final int num = i;
-            logger.debug("giving tasks");
+            log.debug("giving tasks");
             Callable<Integer> callable = () -> {
-                logger.debug("Task number {} is executing", num);
+                log.debug("Task number {} is executing", num);
                 try {
                     Thread.sleep(500);
                     return num;
@@ -88,7 +85,7 @@ public class SimpleFixedThreadPoolTest {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
-            logger.debug("Interrupted: ", e);
+            log.debug("Interrupted: ", e);
         }
         for (Future<?> future : futureList) {
             try {
@@ -98,7 +95,7 @@ public class SimpleFixedThreadPoolTest {
                 resultMap.put(intResult, true);
                 assertTrue(intResult >= 0);
             } catch (ExecutionException | InterruptedException e) {
-                logger.debug("Exception: ", e);
+                log.debug("Exception: ", e);
             }
         }
         assertEquals(taskCount, resultMap.size());

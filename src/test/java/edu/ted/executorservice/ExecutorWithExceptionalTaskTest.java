@@ -1,9 +1,7 @@
 package edu.ted.executorservice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -13,9 +11,8 @@ import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 public class ExecutorWithExceptionalTaskTest {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
     public void givenTasksThrowingExceptions_whenGetExceptionFromTheFuture_thenCorrect() throws InterruptedException {
@@ -26,14 +23,14 @@ public class ExecutorWithExceptionalTaskTest {
         final CountDownLatch finishLatch = new CountDownLatch(taskNumber);
         for (int i = 0; i < taskNumber; i++) {
             final int num = i;
-            logger.debug("giving tasks");
+            log.debug("giving tasks");
             Runnable runnable = () -> {
-                logger.debug("Task number {} is executing", num);
+                log.debug("Task number {} is executing", num);
                 try {
                     Thread.sleep(300);
                     throw new RuntimeException("TestException. Something went wrong");
                 } catch (InterruptedException e) {
-                    logger.debug("Interrupted: ", e);
+                    log.debug("Interrupted: ", e);
                 } finally {
                     finishLatch.countDown();
                 }
@@ -42,7 +39,7 @@ public class ExecutorWithExceptionalTaskTest {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                logger.debug("Interrupted: ", e);
+                log.debug("Interrupted: ", e);
             }
         }
         finishLatch.await();
