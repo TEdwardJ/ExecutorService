@@ -1,5 +1,6 @@
 package edu.ted.executorservice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -11,8 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SimpleBlockingQueueTest {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+@Slf4j
+class SimpleLinkedBlockingQueueTest {
 
     private SimpleLinkedBlockingQueue<String> queue;
 
@@ -50,9 +51,9 @@ class SimpleBlockingQueueTest {
         Runnable parallelTask = () -> {
             try {
                 Thread.sleep(500);
-                logger.debug("take returns {}", queue.take());
+                log.debug("take returns {}", queue.take());
             } catch (InterruptedException e) {
-                logger.debug("Interrupted: ", e);
+                log.debug("Interrupted: ", e);
             }
         };
         new Thread(parallelTask).start();
@@ -80,7 +81,7 @@ class SimpleBlockingQueueTest {
                 Thread.sleep(500);
                 queue.put("Second");
             } catch (InterruptedException e) {
-                logger.debug("Interrupted: ", e);
+                log.debug("Interrupted: ", e);
                 ;
             }
         };
@@ -101,14 +102,14 @@ class SimpleBlockingQueueTest {
                 Thread.sleep(300);
                 queue.put("Second");
             } catch (InterruptedException e) {
-                logger.debug("Interrupted: ", e);
+                log.debug("Interrupted: ", e);
                 ;
             }
         };
         new Thread(parallelTask).start();
         element = queue.poll(500, TimeUnit.MILLISECONDS);
         assertEquals("Second", element);
-        logger.debug("Time passed: {}", (System.currentTimeMillis() - startTimePoint));
+        log.debug("Time passed: {}", (System.currentTimeMillis() - startTimePoint));
         assertTrue((System.currentTimeMillis() - startTimePoint) >= 300);
     }
 

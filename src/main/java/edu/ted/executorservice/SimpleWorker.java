@@ -15,9 +15,9 @@ public class SimpleWorker implements Runnable {
     private final String workerId;
     private volatile boolean isRunning = true;
 
-    private final SimpleBlockingQueue<FutureTask<?>> queue;
+    private final SimpleLinkedBlockingQueue<FutureTask<?>> queue;
 
-    public SimpleWorker(SimpleBlockingQueue<FutureTask<?>> queue, String workerId, CountDownLatch terminationLatch) {
+    public SimpleWorker(SimpleLinkedBlockingQueue<FutureTask<?>> queue, String workerId, CountDownLatch terminationLatch) {
         this.queue = queue;
         this.workerId = workerId;
         this.terminationLatch = terminationLatch;

@@ -1,7 +1,6 @@
 package edu.ted.executorservice;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.Date;
@@ -10,9 +9,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+@Slf4j
 public class SimpleLinkedBlockingQueue<T> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    //private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final int capacity;
     private Node<T> tail;
@@ -61,7 +61,7 @@ public class SimpleLinkedBlockingQueue<T> {
             }
             addElement(t);
         } catch (InterruptedException e) {
-            logger.debug("Method put() was interrupted", e);
+            log.debug("Method put() was interrupted", e);
         } finally {
             lock.unlock();
         }

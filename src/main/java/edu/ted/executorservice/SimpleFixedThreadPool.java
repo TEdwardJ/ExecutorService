@@ -19,7 +19,7 @@ public class SimpleFixedThreadPool implements ExecutorService {
     private final AtomicInteger workersCount = new AtomicInteger(0);
     private final Semaphore shutdownSemaphore = new Semaphore(1);
     private final CountDownLatch terminationLatch;
-    private final SimpleBlockingQueue<FutureTask<?>> queue = new SimpleBlockingQueue<>(100);
+    private final SimpleLinkedBlockingQueue<FutureTask<?>> queue = new SimpleLinkedBlockingQueue<>();
     private final List<SimpleWorker> workerList;
     private volatile boolean isRunning;
 
