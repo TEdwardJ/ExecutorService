@@ -1,10 +1,15 @@
 package edu.ted.executorservice;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Main {
     public static void main(String[] args) {
+        Logger logger = LoggerFactory.getLogger(Main.class);
+        logger.debug("test");
         ExecutorService service1 = Executors.newFixedThreadPool(1);
         ExecutorService service = new SimpleFixedThreadPool(3);
         service.submit(() -> parallelTask(2000));

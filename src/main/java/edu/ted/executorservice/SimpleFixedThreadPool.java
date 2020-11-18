@@ -1,10 +1,8 @@
 package edu.ted.executorservice;
 
 import lombok.extern.slf4j.Slf4j;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -74,20 +72,111 @@ public class SimpleFixedThreadPool implements ExecutorService {
         submit(command);
     }
 
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) {
-        return new ArrayList<>();
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+        CountDownLatch timedLatch = new CountDownLatch(tasks.size());
+        List<Semaphore> semaphoreList = new ArrayList<>();
+        List<Future<T>> futureList = invokeAllAsync(tasks, timedLatch, semaphoreList);
+        timedLatch.await();
+        for (int i = 0; i < semaphoreList.size(); i++) {
+            if (semaphoreList.get(i).tryAcquire()) {
+                try {
+                    T result = futureList.get(i).get();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return futureList;
     }
 
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
-        return new ArrayList<>();
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
+        final CountDownLatch timedLatch = new CountDownLatch(tasks.size());
+        List<Semaphore> semaphoreList = new ArrayList<>();
+        List<Future<T>> futureList = invokeAllAsync(tasks, timedLatch, semaphoreList);
+        timedLatch.await(timeout, unit);
+        for (int i = 0; i < semaphoreList.size(); i++) {
+            if (!semaphoreList.get(i).tryAcquire()) {
+                futureList.get(i).cancel(true);
+            } else{
+                try {
+                    T result = futureList.get(i).get();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return futureList;
     }
 
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
-        return null;
+        AnyResultHolder<T> resultHolder = new AnyResultHolder<>();
+        List<Future<T>> futureList = invokeAnyAsync(tasks, resultHolder);
+        T someResult = resultHolder.getResult();
+        try {
+            CheckAndCompleteFuture(futureList, false, resultHolder.isResultSet());
+        } catch (TimeoutException e) {
+            //should not happen if throwTimePutException == false
+        }
+        return someResult;
     }
 
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return null;
+        AnyResultHolder<T> resultHolder = new AnyResultHolder<>();
+        List<Future<T>> futureList = invokeAnyAsync(tasks, resultHolder);
+        T someResult = resultHolder.getResult(timeout, unit);
+        log.debug("Result is taken: {}", someResult);
+        CheckAndCompleteFuture(futureList, true, resultHolder.isResultSet());
+        return someResult;
+    }
+
+    private <T> void CheckAndCompleteFuture(List<Future<T>> futureList, boolean throwTimeOutException, boolean isResultSet) throws TimeoutException, ExecutionException {
+        int successfullyCompletedTaskNumber, failedTaskNumber, inProgressTaskNumber;
+        successfullyCompletedTaskNumber = failedTaskNumber = inProgressTaskNumber = 0;
+        for (Future<T> future : futureList) {
+            if (future.isDone()) {
+                if (!future.isCancelled()) {
+                    try {
+                        T taskResult = future.get();
+                        successfullyCompletedTaskNumber++;
+                    } catch (Exception e) {
+                        failedTaskNumber++;
+                    }
+                }
+            } else {
+                future.cancel(true);
+                inProgressTaskNumber++;
+            }
+        }
+        if (inProgressTaskNumber == futureList.size() && throwTimeOutException && !isResultSet) {
+            throw new TimeoutException("All tasks are still in progress, but timeout is over");
+        }
+        if (successfullyCompletedTaskNumber == 0 && !isResultSet) {
+            throw new ExecutionException("No task successfully completed, failed: " + failedTaskNumber + ", in progress: " + inProgressTaskNumber, null);
+        }
+    }
+
+    private <T> List<Future<T>> invokeAllAsync(Collection<? extends Callable<T>> tasks, final CountDownLatch timedLatch, List<Semaphore> semaphoreList) throws InterruptedException {
+        List<Future<T>> futureList = new ArrayList<>();
+        for (Callable<T> task : tasks) {
+            Semaphore semaphore = new Semaphore(1);
+            semaphoreList.add(semaphore);
+            semaphore.acquire();
+            TimedCallableTaskWrapper<T> taskWrapper = new TimedCallableTaskWrapper<>(task, result -> {
+                semaphore.release();
+                timedLatch.countDown();
+            });
+            futureList.add(submit(taskWrapper));
+        }
+        return futureList;
+    }
+
+    private <T> List<Future<T>> invokeAnyAsync(Collection<? extends Callable<T>> tasks, AnyResultHolder<T> resultHolder) {
+        List<Future<T>> futureList = new ArrayList<>();
+        for (Callable<T> task : tasks) {
+            TimedCallableTaskWrapper<T> taskWrapper = new TimedCallableTaskWrapper<>(task, result -> resultHolder.setResult(result));
+            futureList.add(submit(taskWrapper));
+        }
+        return futureList;
     }
 
     private void checkForRejection() {
